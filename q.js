@@ -1,8 +1,8 @@
 let array = [];
-let sortingSteps = [];
-let currentStep = 0;
 let comparisons = 0;
 let swaps = 0;
+let sortingSteps = [];
+let isSorting = false;
 
 function addNumber() {
     const input = document.getElementById('numberInput');
@@ -10,7 +10,18 @@ function addNumber() {
     if (!isNaN(number)) {
         array.push(number);
         input.value = '';
-        updateArray();
+        updateArray(array.length - 1, 'new');
+        addMessage(`Added number: ${number}`);
+    }
+}
+
+function removeNumber() {
+    if (array.length > 0) {
+        const removed = array.pop();
+        updateArray(array.length, 'remove');
+        addMessage(`Removed number: ${removed}`);
+    } else {
+        addMessage("Array is empty. Cannot remove element.");
     }
 }
 
@@ -18,19 +29,24 @@ function generateRandomArray() {
     const size = Math.floor(Math.random() * 10) + 5; // Random size between 5 and 14
     array = Array.from({length: size}, () => Math.floor(Math.random() * 100));
     updateArray();
+    addMessage(`Generated random array: [${array.join(', ')}]`);
 }
 
 function clearArray() {
     array = [];
     updateArray();
+    addMessage("Array cleared");
 }
 
-function updateArray() {
+function updateArray(animateIndex = -1, animationType = '') {
     const container = document.getElementById('array-container');
     container.innerHTML = '';
     array.forEach((num, index) => {
         const box = document.createElement('div');
         box.className = 'box';
+        if (index === animateIndex) {
+            box.classList.add(animationType);
+        }
         box.textContent = num;
         container.appendChild(box);
     });
@@ -76,8 +92,12 @@ function partition(arr, low, high) {
     let pivot = arr[high];
     let i = low - 1;
 
+    sortingSteps.push({type: 'pivot', index: high});
+
     for (let j = low; j <= high - 1; j++) {
         comparisons++;
+        sortingSteps.push({type: 'compare', indices: [j, high]});
+        
         if (arr[j] < pivot) {
             i++;
             [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -126,25 +146,12 @@ function animateSorting() {
     animate();
 }
 
-function updateArrayVisual(pivotIndex, swappedIndices) {
-    const container = document.getElementById('array-container');
-    container.innerHTML = '';
-    array.forEach((num, index) => {
-        const box = document.createElement('div');
-        box.className = 'box';
-        if (index === pivotIndex) {
-            box.classList.add('pivot');
-        }
-        if (swappedIndices.includes(index)) {
-            box.classList.add('selected');
-        }
-        box.textContent = num;
-        container.appendChild(box);
-    });
-}
-
-function updateMessage(message) {
-    document.getElementById('messageContainer').textContent = message;
+function addMessage(message) {
+    const messageBox = document.getElementById('messageBox');
+    const messageElement = document.createElement('p');
+    messageElement.textContent = message;
+    messageBox.appendChild(messageElement);
+    messageBox.scrollTop = messageBox.scrollHeight;
 }
 
 // Initialize
